@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # RB-WiFi - Role-Based Access & Usage Control for Campus/Enterprise Wi-Fi
 
 A comprehensive role-based Wi-Fi access control system that authenticates users by role and enforces policies such as bandwidth limits, time-based access, content filtering, and live monitoring with an admin console.
@@ -447,6 +446,3 @@ VITE_GITHUB_TOKEN=your_github_token_for_openai_api
 *   **Offline Mode**: SMS-based queries for areas with poor internet connectivity.
 
 ---
-
-### *Made for the <CodeStorm/> Hackathon*
->>>>>>> 723659eb528196eccb75e92076d54a91e31247dd
