@@ -1,0 +1,23 @@
+{
+  "name": "rb-wifi",
+  "version": "1.0.0",
+  "description": "Role-Based Access & Usage Control for Campus/Enterprise Wi-Fi",
+  "scripts": {
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"node -e \\\"setTimeout(() => require('child_process').exec('start http://localhost:3000'), 3500)\\\"\"",
+    "generate-data": "cd backend && node scripts/generate-data.js"
+  },
+  "keywords": [
+    "wifi",
+    "rbac",
+    "access-control",
+    "enterprise"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
