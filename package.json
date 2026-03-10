@@ -7,7 +7,9 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"node -e \\\"setTimeout(() => require('child_process').exec('start http://localhost:3000'), 3500)\\\"\"",
-    "generate-data": "cd backend && node scripts/generate-data.js"
+    "generate-data": "cd backend && node scripts/generate-data.js",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && cross-env NODE_ENV=production node server.js"
   },
   "keywords": [
     "wifi",
@@ -18,6 +20,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
   }
 }

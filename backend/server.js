@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -37,6 +38,16 @@ app.use((err, req, res, next) => {
     error: err.message || 'Internal server error',
   });
 });
+
+// Serve frontend in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendPath = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(frontendPath));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendPath, 'index.html'));
+  });
+}
 
 // Start server
 const PORT = process.env.PORT || 5000;
