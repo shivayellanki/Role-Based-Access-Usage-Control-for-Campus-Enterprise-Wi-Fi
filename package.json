@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"node -e \\\"setTimeout(() => require('child_process').exec('start http://localhost:3000'), 3500)\\\"\"",
     "generate-data": "cd backend && node scripts/generate-data.js",
     "build": "cd frontend && npm run build",
-    "start": "cd backend && node server.js"
+    "start": "cd backend && node scripts/setup-db.js && node scripts/seed-users.js && node server.js"
   },
   "keywords": [
     "wifi",
