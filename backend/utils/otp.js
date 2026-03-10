@@ -98,6 +98,12 @@ let transporter = null;
 const getTransporter = () => {
   if (transporter) return transporter;
 
+  // Force Node.js to resolve via IPv4 to prevent Render IPv6 outbound blocking
+  const dns = require('dns');
+  if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+  }
+
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
