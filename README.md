@@ -2,7 +2,7 @@
 
 A comprehensive role-based Wi-Fi access control system that authenticates users by role and enforces policies such as bandwidth limits, time-based access, content filtering, and live monitoring with an admin console.
 
-## Features
+# Features
 
 ### Core Features
 - **Role-Based Authentication**: Login portal supporting email/OTP for Guests and username/password for internal roles (Student, Faculty, Staff, Admin)
