@@ -3,24 +3,49 @@ const { logAudit } = require('./audit');
 
 // Check if current time is within allowed hours
 const checkTimeRestriction = (policy) => {
+  // If 24x7 access is enabled, always allow
   if (policy.access_24x7) {
     return { allowed: true };
   }
 
-  const now = new Date();
-  const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS format
-
-  if (policy.allowed_hours_start && policy.allowed_hours_end) {
-    if (currentTime >= policy.allowed_hours_start && currentTime <= policy.allowed_hours_end) {
-      return { allowed: true };
-    }
-    return {
-      allowed: false,
-      reason: `Access denied. Allowed hours: ${policy.allowed_hours_start} - ${policy.allowed_hours_end}`,
-    };
+  // If no time restrictions set, allow access
+  if (!policy.allowed_hours_start || !policy.allowed_hours_end) {
+    return { allowed: true };
   }
 
-  return { allowed: true };
+  // Get current time in IST (UTC+5:30)
+  // The server runs in UTC, but users are on IST campus network
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000; // 5h30m in milliseconds
+  const istNow = new Date(now.getTime() + istOffset);
+
+  // Format as HH:MM for comparison (HH:MM:SS from DB)
+  const hours = String(istNow.getUTCHours()).padStart(2, '0');
+  const minutes = String(istNow.getUTCMinutes()).padStart(2, '0');
+  const currentTime = `${hours}:${minutes}:00`; // HH:MM:SS
+
+  // Normalize DB time values (strip any extra formatting)
+  const startTime = policy.allowed_hours_start.toString().slice(0, 8);
+  const endTime = policy.allowed_hours_end.toString().slice(0, 8);
+
+  let isAllowed;
+
+  if (startTime <= endTime) {
+    // Normal range e.g. 06:00 - 23:00
+    isAllowed = currentTime >= startTime && currentTime <= endTime;
+  } else {
+    // Overnight range e.g. 22:00 - 06:00 (spans midnight)
+    isAllowed = currentTime >= startTime || currentTime <= endTime;
+  }
+
+  if (isAllowed) {
+    return { allowed: true };
+  }
+
+  return {
+    allowed: false,
+    reason: `Access denied. Allowed hours: ${startTime.slice(0, 5)} - ${endTime.slice(0, 5)} IST`,
+  };
 };
 
 // Check daily quota
