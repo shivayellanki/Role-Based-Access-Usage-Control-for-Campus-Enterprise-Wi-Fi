@@ -19,7 +19,6 @@
     "fs-extra": "^11.3.3",
     "lucide-react": "^0.575.0",
     "postcss": "^8.5.6",
-    "rb-wifi": "file:..",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.0",

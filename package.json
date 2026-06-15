@@ -6,10 +6,12 @@
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"node -e \\\"setTimeout(() => require('child_process').exec('start http://localhost:3000'), 3500)\\\"\"",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "generate-data": "cd backend && node scripts/generate-data.js",
-    "build": "cd frontend && npm run build",
-    "start": "cd backend && node scripts/setup-db.js && node scripts/seed-users.js && node server.js"
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd backend && node server.js",
+    "setup-db": "cd backend && node scripts/setup-db.js",
+    "seed-users": "cd backend && node scripts/seed-users.js"
   },
   "keywords": [
     "wifi",
