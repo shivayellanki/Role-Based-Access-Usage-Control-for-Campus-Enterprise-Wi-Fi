@@ -253,12 +253,6 @@ npm start
 - ✅ **Observability**: Live charts, logs, and exports
 - ✅ **Security**: Hashed secrets, input validation, audit trails
 
-## Development Notes
-
-- OTP codes are logged to console in demo mode (configure email service for production)
-- Policy changes take effect immediately for new requests
-- Usage tracking is updated periodically (implement cron job for production)
-- Chart.js is used for visualizations (Pie and Bar charts)
 
 ## Future Enhancements
 
@@ -269,12 +263,83 @@ npm start
 - Advanced content filtering with external services
 - Device registration and MAC binding UI
 
-## License
+## Machine Learning Enhancement
 
-MIT
+### Problem
+The existing threat detector relied on fixed threshold rules (e.g., Student download > 2 GB, Guest download > 800 MB).
+
+### Limitation
+Fixed thresholds cannot detect unusual *combinations* of network behaviors. For example, a Student session with download_mb=1800, upload_mb=650, login_hour=2, violation_count=5 does not trigger any single hard rule, but the combination is highly anomalous.
+
+### ML Formulation
+Unsupervised Anomaly Detection using Isolation Forest (reliable labeled production attack data is unavailable).
+
+### Features
+role, download_mb, upload_mb, session_duration_minutes, login_hour, violation_count
+
+### Preprocessing
+- Categorical: role -> OneHotEncoder(handle_unknown=ignore)
+- Numerical: StandardScaler() inside ColumnTransformer
+
+### Dataset
+Synthetic dataset of 1,100 sessions (1,000 normal + 100 anomalous). Synthetic labels are NOT used during model training. They are used only for evaluation.
+
+### Data Split: 70% Train / 15% Validation / 15% Test
+Stratified splits preserve anomaly class proportions.
+
+- Train (70%): Preprocessing fitting and model training (normal rows only)
+- Validation (15%): Contamination hyperparameter selection using synthetic labels
+- Test (15%): Final unbiased evaluation, run exactly once
+
+### Training Methodology
+1. Isolation Forest trained exclusively on normal rows (is_anomaly == 0) from the Training split
+2. Synthetic labels completely excluded from model fitting
+3. Preprocessing statistics computed from normal training rows only
+4. Contamination candidates (0.05, 0.10, 0.15) evaluated on the Validation split
+5. Best contamination selected by validation F1 (ties: recall, then precision)
+6. Final model evaluated exactly once on the untouched Test split
+
+### Hyperparameter Comparison (Validation Set)
+- contamination=0.05: Precision=0.5500, Recall=0.7333, F1=0.6286
+- contamination=0.10: Precision=0.5000, Recall=0.8667, F1=0.6341 (SELECTED)
+- contamination=0.15: Precision=0.3889, Recall=0.9333, F1=0.5490
+
+### Final Test Set Metrics (Untouched -- Run Once)
+- Precision: 0.4815
+- Recall: 0.8667
+- F1 Score: 0.6190
+- ROC-AUC: 0.9387
+- PR-AUC: 0.5646
+- Confusion Matrix: TN=136, FP=14, FN=2, TP=13
+
+Metrics saved in ml/metrics.json. Pipeline saved as ml/model.joblib.
+
+### Risk Score
+The Isolation Forest decision score is mapped to a normalized 0-100 Risk Score using training score percentiles. This is NOT a probability.
+- 0-29: LOW
+- 30-59: MEDIUM
+- 60-79: HIGH
+- 80-100: CRITICAL
+
+### Explainability
+Feature Deviation Explanation: z-score per numerical feature using normal-training-set statistics. Top 3 deviations reported. This is NOT the internal reasoning of Isolation Forest.
+
+### Integration Flow
+React Admin Dashboard -> (POST /api/ml/analyze) -> Express API Router -> Node ML Service -> (child_process.spawn stdin) -> Python predict.py -> Isolation Forest Pipeline
+
+### Limitations
+1. Synthetic dataset (not real campus traffic)
+2. Small dataset (~1,100 sessions)
+3. Global feature statistics (not per-role baselines)
+4. New Python child process per analysis request
+5. No temporal/session-history features
+
+### Future Improvements
+1. Real campus network logs
+2. FastAPI inference service
+3. SHAP integration
+4. Model monitoring and drift detection
 
 ## Author
 
 RB-WiFi Project Team
-
-=======

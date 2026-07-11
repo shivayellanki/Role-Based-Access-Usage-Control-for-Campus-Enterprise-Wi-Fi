@@ -36,6 +36,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/threats', require('./routes/threats'));
+app.use('/api/ml', require('./routes/ml'));
 
 // Health check
 app.get('/api/health', (req, res) => {

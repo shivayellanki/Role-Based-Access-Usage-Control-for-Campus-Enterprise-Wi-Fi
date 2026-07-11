@@ -4,6 +4,7 @@ import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, T
 import { Pie, Bar } from 'react-chartjs-2';
 import { Users, Activity, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
+import MLAnomalyCard from './MLAnomalyCard';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -161,6 +162,11 @@ const AdminOverview = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* ML Anomaly Detection */}
+      <motion.div variants={itemVariants}>
+        <MLAnomalyCard />
+      </motion.div>
 
       {/* Recent Violations */}
       {dashboard.violations && dashboard.violations.length > 0 && (
