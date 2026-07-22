@@ -54,12 +54,12 @@ const checkQuota = async (userId, policy) => {
     return { allowed: true, remaining: null };
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  // Use CURDATE() to match MySQL stored date format (avoids UTC/IST mismatch)
   const result = await pool.query(
     `SELECT COALESCE(SUM(data_used_bytes), 0) as used_bytes
      FROM usage_tracking
-     WHERE user_id = $1 AND date = $2`,
-    [userId, today]
+     WHERE user_id = $1 AND date = CURDATE()`,
+    [userId]
   );
 
   const usedBytes = parseInt(result.rows[0].used_bytes);

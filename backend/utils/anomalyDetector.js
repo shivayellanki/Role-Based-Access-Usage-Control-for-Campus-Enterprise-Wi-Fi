@@ -24,11 +24,10 @@ const scanForAnomalies = async () => {
       WHERE s.is_active = true
     `);
 
-        const today = new Date().toISOString().split('T')[0];
-
         for (const session of activeSessionsResult.rows) {
-            // Increment traffic for active session (5 MB to 20 MB per tick)
-            const bytesAdded = Math.floor(Math.random() * (20 - 5 + 1) + 5) * 1024 * 1024;
+            // Increment traffic for active session (100 KB to 500 KB per tick)
+            // Kept small so user quotas (e.g. Student 2 GB) aren't exhausted within minutes
+            const bytesAdded = Math.floor(Math.random() * (500 - 100 + 1) + 100) * 1024;
             const updatedBytes = Number(session.data_used_bytes || 0) + bytesAdded;
 
             await pool.query(
@@ -36,10 +35,11 @@ const scanForAnomalies = async () => {
                 [updatedBytes, session.id]
             );
 
-            // Update usage_tracking
+            // Update usage_tracking using CURDATE() so it matches MySQL's stored date format
+            // (avoids UTC/IST mismatch causing duplicate rows per tick)
             const usageCheck = await pool.query(
-                `SELECT id FROM usage_tracking WHERE user_id = $1 AND date = $2 LIMIT 1`,
-                [session.user_id, today]
+                `SELECT id FROM usage_tracking WHERE session_id = $1 AND date = CURDATE() LIMIT 1`,
+                [session.id]
             );
 
             if (usageCheck.rows.length > 0) {
@@ -49,8 +49,8 @@ const scanForAnomalies = async () => {
                 );
             } else {
                 await pool.query(
-                    `INSERT INTO usage_tracking (user_id, session_id, date, data_used_bytes, time_used_minutes) VALUES ($1, $2, $3, $4, 1)`,
-                    [session.user_id, session.id, today, bytesAdded]
+                    `INSERT INTO usage_tracking (user_id, session_id, date, data_used_bytes, time_used_minutes) VALUES ($1, $2, CURDATE(), $3, 1)`,
+                    [session.user_id, session.id, bytesAdded]
                 );
             }
 

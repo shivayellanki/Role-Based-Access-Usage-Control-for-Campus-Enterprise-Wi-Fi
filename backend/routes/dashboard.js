@@ -26,18 +26,16 @@ router.get('/admin', authenticateToken, requireRole('Admin'), async (req, res) =
        GROUP BY r.name`
     );
 
-    // Top users by data usage (today)
-    const today = new Date().toISOString().split('T')[0];
+    // Top users by data usage (today) — use CURDATE() to match MySQL's stored date format
     const topUsersResult = await pool.query(
       `SELECT u.username, u.email, r.name as role, SUM(ut.data_used_bytes) as total_bytes
        FROM usage_tracking ut
        JOIN users u ON ut.user_id = u.id
        JOIN roles r ON u.role_id = r.id
-       WHERE ut.date = $1
+       WHERE ut.date = CURDATE()
        GROUP BY u.id, u.username, u.email, r.name
        ORDER BY total_bytes DESC
-       LIMIT 10`,
-      [today]
+       LIMIT 10`
     );
 
     // Recent violations
@@ -56,9 +54,8 @@ router.get('/admin', authenticateToken, requireRole('Admin'), async (req, res) =
        FROM usage_tracking ut
        JOIN users u ON ut.user_id = u.id
        JOIN roles r ON u.role_id = r.id
-       WHERE ut.date = $1
-       GROUP BY r.name`,
-      [today]
+       WHERE ut.date = CURDATE()
+       GROUP BY r.name`
     );
 
     res.json({
@@ -85,8 +82,6 @@ router.get('/admin', authenticateToken, requireRole('Admin'), async (req, res) =
 router.get('/user', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const today = new Date().toISOString().split('T')[0];
-
     // Get user's policy
     const policyResult = await pool.query(
       `SELECT p.*, r.name as role_name
@@ -99,13 +94,13 @@ router.get('/user', authenticateToken, async (req, res) => {
 
     const policy = policyResult.rows[0];
 
-    // Get today's usage
+    // Get today's usage — use CURDATE() to match MySQL stored date format
     const usageResult = await pool.query(
        `SELECT COALESCE(SUM(data_used_bytes), 0) as used_bytes,
               COALESCE(SUM(time_used_minutes), 0) as used_minutes
        FROM usage_tracking
-       WHERE user_id = $1 AND date = $2`,
-      [userId, today]
+       WHERE user_id = $1 AND date = CURDATE()`,
+      [userId]
     );
 
     const usage = usageResult.rows[0];

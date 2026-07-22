@@ -33,14 +33,13 @@ router.get('/current', authenticateToken, async (req, res) => {
     // Evaluate current policy status
     const policyCheck = await evaluatePolicy(req.user.id, session.id);
 
-    // Get today's usage
-    const today = new Date().toISOString().split('T')[0];
+    // Get today's usage — use CURDATE() to match MySQL stored date format
     const usageResult = await pool.query(
       `SELECT COALESCE(SUM(data_used_bytes), 0) as used_bytes,
               COALESCE(SUM(time_used_minutes), 0) as used_minutes
        FROM usage_tracking
-       WHERE user_id = $1 AND date = $2`,
-      [req.user.id, today]
+       WHERE user_id = $1 AND date = CURDATE()`,
+      [req.user.id]
     );
 
     const usage = usageResult.rows[0];
