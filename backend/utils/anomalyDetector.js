@@ -8,7 +8,14 @@ const reportedThreats = new Set();
 
 const scanForAnomalies = async () => {
     try {
-        // Look for active sessions that exceed 1 GB downloaded or having unusual parameters (Student downloading > 2GB)
+        // 1. Deactivate expired sessions
+        await pool.query(`
+            UPDATE sessions 
+            SET is_active = false, ended_at = NOW() 
+            WHERE is_active = true AND expires_at IS NOT NULL AND expires_at <= NOW()
+        `);
+
+        // 2. Fetch active sessions
         const activeSessionsResult = await pool.query(`
       SELECT s.id, s.user_id, s.data_used_bytes, s.ip_address, r.name as role_name, u.username
       FROM sessions s
@@ -17,9 +24,38 @@ const scanForAnomalies = async () => {
       WHERE s.is_active = true
     `);
 
+        const today = new Date().toISOString().split('T')[0];
+
         for (const session of activeSessionsResult.rows) {
-            // Rule 1: Student role exceeding 2GB (2147483648 bytes) in a single session rapidly
-            const dataUsedMB = session.data_used_bytes / (1024 * 1024);
+            // Increment traffic for active session (5 MB to 20 MB per tick)
+            const bytesAdded = Math.floor(Math.random() * (20 - 5 + 1) + 5) * 1024 * 1024;
+            const updatedBytes = Number(session.data_used_bytes || 0) + bytesAdded;
+
+            await pool.query(
+                `UPDATE sessions SET data_used_bytes = $1 WHERE id = $2`,
+                [updatedBytes, session.id]
+            );
+
+            // Update usage_tracking
+            const usageCheck = await pool.query(
+                `SELECT id FROM usage_tracking WHERE user_id = $1 AND date = $2 LIMIT 1`,
+                [session.user_id, today]
+            );
+
+            if (usageCheck.rows.length > 0) {
+                await pool.query(
+                    `UPDATE usage_tracking SET data_used_bytes = data_used_bytes + $1, time_used_minutes = time_used_minutes + 1 WHERE id = $2`,
+                    [bytesAdded, usageCheck.rows[0].id]
+                );
+            } else {
+                await pool.query(
+                    `INSERT INTO usage_tracking (user_id, session_id, date, data_used_bytes, time_used_minutes) VALUES ($1, $2, $3, $4, 1)`,
+                    [session.user_id, session.id, today, bytesAdded]
+                );
+            }
+
+            // Rule 1: Student role exceeding 2GB in a single session rapidly
+            const dataUsedMB = updatedBytes / (1024 * 1024);
 
             let threatFound = false;
             let threatReason = '';
@@ -70,6 +106,12 @@ const scanForAnomalies = async () => {
                     // Socket might not be ready yet
                 }
             }
+        }
+
+        if (activeSessionsResult.rows.length > 0) {
+            try {
+                socketUtil.getIO().emit('session_updated');
+            } catch (e) {}
         }
     } catch (error) {
         console.error('Error scanning for anomalies:', error);

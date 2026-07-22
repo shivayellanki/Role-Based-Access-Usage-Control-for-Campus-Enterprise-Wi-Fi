@@ -2,20 +2,20 @@
 
 ## 1. Prerequisites
 - Node.js 16+ installed
-- PostgreSQL 12+ installed and running
+- MySQL 8.0+ / MariaDB 10+ installed and running
 - npm or yarn
 
 ## 2. Database Setup
 
 ```bash
-# Create database
-createdb rbwifi
+# Log in to MySQL CLI
+mysql -u root -p
 
-# Or using psql spatial
-psql -U postgres
+# Create database
 CREATE DATABASE rbwifi;
-\q
+exit;
 ```
+
 
 ## 3. Install Dependencies
 
@@ -40,9 +40,9 @@ Create `backend/.env`:
 PORT=5000
 NODE_ENV=development
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=3306
 DB_NAME=rbwifi
-DB_USER=postgres
+DB_USER=root
 DB_PASSWORD=your_db_password
 JWT_SECRET=change-this-to-a-random-secret-key
 JWT_EXPIRES_IN=24h
@@ -113,7 +113,7 @@ npm start
 ## Troubleshooting
 
 ### Database Connection Error
-- Ensure PostgreSQL is running
+- Ensure MySQL is running
 - Verify DB credentials in `.env`
 - Check if database `rbwifi` exists
 

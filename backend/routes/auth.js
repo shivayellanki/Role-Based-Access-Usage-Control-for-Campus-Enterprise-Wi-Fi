@@ -31,6 +31,12 @@ const generateToken = (userId, roleId) => {
 
 // Create session
 const createSession = async (userId, roleId, token, ipAddress, macAddress, deviceType, os, browser) => {
+  // Deactivate any existing active sessions for this user
+  await pool.query(
+    `UPDATE sessions SET is_active = false, ended_at = NOW() WHERE user_id = $1 AND is_active = true`,
+    [userId]
+  );
+
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   const result = await pool.query(

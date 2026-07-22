@@ -25,6 +25,12 @@ const AdminOverview = () => {
       }
     };
     load();
+
+    const interval = setInterval(() => {
+      load();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return (

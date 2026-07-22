@@ -17,13 +17,11 @@ Methodology details:
   - Test Metrics: Precision, Recall, F1, Confusion Matrix, ROC-AUC, and PR-AUC (Average Precision).
   - Score percentiles & statistics: Computed strictly on normal training rows.
 """
-
 import os
 import json
 import joblib
 import numpy as np
 import pandas as pd
-
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import IsolationForest
 from sklearn.pipeline import Pipeline
@@ -33,7 +31,6 @@ from sklearn.metrics import (
     roc_auc_score, average_precision_score
 )
 from sklearn.model_selection import train_test_split
-
 SEED = 42
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH   = os.path.join(SCRIPT_DIR, "network_sessions.csv")
@@ -51,15 +48,11 @@ NUMERICAL_FEATURES   = [
     "violation_count",
 ]
 ALL_FEATURES = CATEGORICAL_FEATURES + NUMERICAL_FEATURES
-
-
 def load_data():
     df = pd.read_csv(DATA_PATH)
     X = df[ALL_FEATURES]
     y = df["is_anomaly"]   # used only for evaluation
     return X, y
-
-
 def build_pipeline(contamination: float) -> Pipeline:
     preprocessor = ColumnTransformer(transformers=[
         ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False),
@@ -98,8 +91,6 @@ def evaluate(pipeline, X_eval, y_eval):
         "f1_score":  round(f1, 4),
         "confusion_matrix": cm,
     }
-
-
 def compare_contamination(X_train_normal, X_val, y_val):
     candidates = [0.05, 0.10, 0.15]
     print("\n--- Hyperparameter Comparison: contamination values on Validation Set ---")

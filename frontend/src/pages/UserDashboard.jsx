@@ -13,6 +13,13 @@ const UserDashboard = () => {
   useEffect(() => {
     loadDashboard();
     loadSessionHistory();
+
+    const interval = setInterval(() => {
+      loadDashboard();
+      loadSessionHistory();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadDashboard = async () => {

@@ -23,7 +23,7 @@ A comprehensive role-based Wi-Fi access control system that authenticates users 
 
 - **Frontend**: React 18, React Router, Chart.js, Axios
 - **Backend**: Node.js, Express.js
-- **Database**: PostgreSQL
+- **Database**: MySQL
 - **Authentication**: JWT tokens, bcrypt password hashing
 
 ## Project Structure
@@ -51,7 +51,7 @@ rb-wifi/
 ## Prerequisites
 
 - Node.js (v16 or higher)
-- PostgreSQL (v12 or higher)
+- MySQL (v8.0 or higher) / MariaDB
 - npm or yarn
 
 ## Installation
@@ -73,7 +73,7 @@ npm install
 
 ### 2. Database Setup
 
-1. Create a PostgreSQL database:
+1. Create a MySQL database:
 
 ```sql
 CREATE DATABASE rbwifi;
@@ -82,7 +82,7 @@ CREATE DATABASE rbwifi;
 2. Run the schema:
 
 ```bash
-psql -U postgres -d rbwifi -f database/schema.sql
+mysql -u root -p -D rbwifi < database/schema.sql
 ```
 
 Or manually execute the SQL in `database/schema.sql`.
@@ -96,10 +96,10 @@ PORT=5000
 NODE_ENV=development
 
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=3306
 DB_NAME=rbwifi
-DB_USER=postgres
-DB_PASSWORD=postgres
+DB_USER=root
+DB_PASSWORD=
 
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=24h
